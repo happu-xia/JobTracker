@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+{% from '_macros.html' import status_badge, empty_state, delete_confirm %}
+{% block title %}{{ company.name }}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <nav aria-label="breadcrumb" class="mb-1">
+      <ol class="breadcrumb small mb-0">
+        <li class="breadcrumb-item"><a href="{{ url_for('companies.index') }}">企业库</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ company.name }}</li>
+      </ol>
+    </nav>
+    <h4 class="mb-0">{{ company.name }}</h4>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('applications.create', company_id=company.id) }}" class="btn btn-primary btn-sm">
+      <i class="bi bi-send"></i> 记录投递
+    </a>
+    <a href="{{ url_for('companies.edit', company_id=company.id) }}" class="btn btn-light btn-sm">
+      <i class="bi bi-pencil"></i> 编辑
+    </a>
+    {{ delete_confirm(url_for('companies.delete', company_id=company.id),
+                      label='删除',
+                      message='删除企业「' ~ company.name ~ '」？若存在关联投递将一并删除。') }}
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header">企业信息</div>
+      <div class="card-body">
+        <dl class="row mb-0 small">
+          <dt class="col-4 text-muted fw-normal">官网</dt>
+          <dd class="col-8">
+            {% if company.website %}
+              <a href="{{ company.website }}" target="_blank" rel="noopener noreferrer">
+                {{ company.website | urlhost }} <i class="bi bi-box-arrow-up-right"></i>
+              </a>
+            {% else %}<span class="text-muted">未填写</span>{% endif %}
+          </dd>
+
+          <dt class="col-4 text-muted fw-normal">行业</dt>
+          <dd class="col-8">{{ company.industry or '—' }}</dd>
+
+          <dt class="col-4 text-muted fw-normal">规模</dt>
+          <dd class="col-8">{{ SCALE_LABELS.get(company.scale, '—') }}</dd>
+
+          <dt class="col-4 text-muted fw-normal">城市</dt>
+          <dd class="col-8">{{ company.city or '—' }}</dd>
+
+          <dt class="col-4 text-muted fw-normal">投递数</dt>
+          <dd class="col-8"><span class="badge text-bg-primary">{{ usage }}</span></dd>
+
+          <dt class="col-4 text-muted fw-normal">创建时间</dt>
+          <dd class="col-8">{{ company.created_at | dt }}</dd>
+        </dl>
+        {% if company.notes %}
+          <hr>
+          <div class="small text-muted" style="white-space:pre-wrap">{{ company.notes }}</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span>该企业的投递记录</span>
+        <span class="small text-muted">{{ pagination.total }} 条</span>
+      </div>
+      <div class="card-body p-0">
+        {% if pagination.items %}
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr><th>职位</th><th>类型</th><th>状态</th><th>面试</th><th class="text-end">投递时间</th></tr>
+              </thead>
+              <tbody>
+                {% for item in pagination.items %}
+                  <tr>
+                    <td>
+                      <a href="{{ url_for('applications.detail', app_id=item.id) }}"
+                         class="fw-semibold text-decoration-none">{{ item.position_name }}</a>
+                    </td>
+                    <td class="small text-muted">
+                      {% if item.job_type %}
+                        <span class="dot" style="background:{{ item.job_type.color }}"></span>{{ item.job_type.name }}
+                      {% else %}未分类{% endif %}
+                    </td>
+                    <td>{{ status_badge(item.status) }}</td>
+                    <td>
+                      {% if item.has_interview %}
+                        <span class="badge text-bg-warning"><i class="bi bi-person-video3"></i> 有</span>
+                      {% else %}
+                        <span class="text-muted small">—</span>
+                      {% endif %}
+                    </td>
+                    <td class="text-end text-muted small">{{ item.applied_at | humanize }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="p-4">
+            {{ empty_state('send', '这家企业还没有投递记录', '点右上角「记录投递」开始跟踪',
+                           url_for('applications.create', company_id=company.id), '记录投递') }}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+    {% include 'partials/pagination.html' %}
+  </div>
+</div>
+{% endblock %}

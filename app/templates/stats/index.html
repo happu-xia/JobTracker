@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+{% from '_macros.html' import empty_state %}
+{% block title %}数据统计{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <h4 class="mb-1">数据统计</h4>
+    <p class="text-muted small mb-0">
+      统计区间 {{ start }} ~ {{ end }}（{{ days }} 天）· 全部指标基于投递时间的自然日口径
+    </p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('stats.export_csv', start=start, end=end) }}" class="btn btn-light btn-sm">
+      <i class="bi bi-filetype-csv"></i> 导出明细
+    </a>
+    <a href="{{ url_for('stats.data', start=start, end=end) }}" class="btn btn-light btn-sm" target="_blank">
+      <i class="bi bi-braces"></i> JSON 接口
+    </a>
+  </div>
+</div>
+
+<div class="card mb-3">
+  <div class="card-body py-3">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-auto">
+        <label class="form-label small text-muted mb-1">开始日期</label>
+        <input type="date" name="start" value="{{ start.isoformat() }}" class="form-control">
+      </div>
+      <div class="col-auto">
+        <label class="form-label small text-muted mb-1">结束日期</label>
+        <input type="date" name="end" value="{{ end.isoformat() }}" class="form-control">
+      </div>
+      <div class="col-auto">
+        <button class="btn btn-primary" type="submit">应用</button>
+      </div>
+      <div class="col-auto ms-md-2">
+        <div class="btn-group btn-group-sm" role="group">
+          {% for item in quick_links %}
+            <a class="btn btn-outline-secondary {% if item.days == days %}active{% endif %}"
+               href="{{ url_for('stats.index', start=item.start, end=item.end) }}">{{ item.label }}</a>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="col-auto ms-auto text-muted small">
+        跨度上限 {{ config.STATS_MAX_RANGE_DAYS }} 天
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="row g-3 mb-1">
+  {% set cards = [
+    ('总投递', kpi.total, 'bi-send', '#5B8FF9', '近 7 天 ' ~ kpi.last7 ~ ' 条'),
+    ('进入面试', kpi.interviewed, 'bi-person-video3', '#F6BD16', '面试率 ' ~ kpi.interview_rate ~ '%'),
+    ('Offer', kpi.offered, 'bi-trophy', '#FF4D4F', 'Offer 率 ' ~ kpi.offer_rate ~ '%'),
+    ('已拒绝 / 放弃', kpi.rejected ~ ' / ' ~ kpi.withdrawn, 'bi-x-circle', '#909399', '仍在流程中 ' ~ kpi.pending ~ ' 条'),
+    ('平均响应', kpi.avg_response_days, 'bi-clock-history', '#5AD8A6', '天（企业首次查看）'),
+    ('被查看', kpi.viewed, 'bi-eye', '#9270CA', '查看率 ' ~ ((kpi.viewed / kpi.total * 100) | round(1) if kpi.total else 0) ~ '%')
+  ] %}
+  {% for label, value, icon, color, hint in cards %}
+    <div class="col-6 col-md-4 col-xl-2">
+      <div class="card kpi-card h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <span class="kpi-label">{{ label }}</span>
+            <span class="kpi-icon" style="background:{{ color }}1a; color:{{ color }};"><i class="bi {{ icon }}"></i></span>
+          </div>
+          <div class="kpi-value">{{ value }}</div>
+          <div class="kpi-hint">{{ hint }}</div>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+<div class="row g-3 mt-1">
+  <div class="col-lg-5">
+    <div class="card h-100">
+      <div class="card-header">{{ charts.status.title }}</div>
+      <div class="card-body">
+        <div id="statusChart" class="chart" data-payload='{{ charts.status | tojson }}'></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-7">
+    <div class="card h-100">
+      <div class="card-header d-flex justify-content-between">
+        <span>{{ charts.trend.title }}</span>
+        <span class="badge text-bg-light">
+          {{ '按周聚合' if charts.trend.granularity == 'week' else '按天聚合' }} · 峰值 {{ charts.trend.peak }}
+        </span>
+      </div>
+      <div class="card-body">
+        <div id="trendChart" class="chart" data-payload='{{ charts.trend | tojson }}'></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mt-1">
+  <div class="col-lg-5">
+    <div class="card h-100">
+      <div class="card-header">{{ charts.funnel.title }}</div>
+      <div class="card-body">
+        <div id="funnelChart" class="chart" data-payload='{{ charts.funnel | tojson }}'></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-7">
+    <div class="card h-100">
+      <div class="card-header">{{ charts.jobType.title }}</div>
+      <div class="card-body">
+        <div id="jobTypeChart" class="chart" data-payload='{{ charts.jobType | tojson }}'></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mt-1">
+  <div class="col-lg-7">
+    <div class="card h-100">
+      <div class="card-header">{{ charts.channel.title }}</div>
+      <div class="card-body">
+        <div id="channelChart" class="chart" data-payload='{{ charts.channel | tojson }}'></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-5">
+    <div class="card h-100">
+      <div class="card-header">{{ charts.round.title }}</div>
+      <div class="card-body">
+        <div id="roundChart" class="chart" data-payload='{{ charts.round | tojson }}'></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card mt-4">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span><i class="bi bi-table me-1"></i>明细汇总</span>
+    <span class="small text-muted">共 {{ detail.total }} 条</span>
+  </div>
+  <div class="card-body p-0">
+    {% if detail.rows %}
+      <div class="table-responsive">
+        <table class="table table-sm table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>企业</th><th>职位</th><th>类型</th><th>渠道</th><th>状态</th>
+              <th class="text-end">投递</th><th class="text-center">阶段</th>
+              <th class="text-center">响应(天)</th><th class="text-center">面试</th><th>简历</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in detail.rows %}
+              <tr>
+                <td class="text-nowrap">{{ row.company }}</td>
+                <td>
+                  <a href="{{ url_for('applications.detail', app_id=row.obj.id) }}" class="text-decoration-none">
+                    {{ row.position }}
+                  </a>
+                </td>
+                <td class="text-nowrap">
+                  <span class="dot" style="background:{{ row.job_type_color }}"></span>{{ row.job_type }}
+                </td>
+                <td class="text-muted small text-nowrap">{{ row.channel }}</td>
+                <td>
+                  <span class="badge rounded-pill" style="background:{{ row.status_color }}">{{ row.status }}</span>
+                </td>
+                <td class="text-end text-muted small text-nowrap">{{ row.applied_at | d }}</td>
+                <td class="text-center">{{ row.stage }}</td>
+                <td class="text-center">{{ row.response_days if row.response_days is not none else '—' }}</td>
+                <td class="text-center">
+                  {% if row.interview_cnt %}
+                    <span class="badge text-bg-warning">{{ row.interview_cnt }}</span>
+                    <span class="small text-muted">过{{ row.passed_cnt }}</span>
+                  {% else %}—{% endif %}
+                </td>
+                <td class="small text-muted text-truncate" style="max-width:160px" title="{{ row.resume }}">{{ row.resume }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="p-4">
+        {{ empty_state('bar-chart', '该区间没有数据', '换个时间范围，或先去记录几笔投递',
+                       url_for('applications.create'), '记录投递') }}
+      </div>
+    {% endif %}
+  </div>
+  {% if detail.pages > 1 %}
+    <div class="card-footer bg-white d-flex justify-content-between align-items-center">
+      <span class="small text-muted">第 {{ detail.page }} / {{ detail.pages }} 页</span>
+      <div class="btn-group btn-group-sm">
+        <a class="btn btn-outline-secondary {% if detail.page <= 1 %}disabled{% endif %}"
+           href="{{ url_for('stats.index', start=start, end=end, page=detail.page - 1) }}">上一页</a>
+        <a class="btn btn-outline-secondary {% if detail.page >= detail.pages %}disabled{% endif %}"
+           href="{{ url_for('stats.index', start=start, end=end, page=detail.page + 1) }}">下一页</a>
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if config.USE_LOCAL_ASSETS %}
+<script src="{{ url_for('static', filename='vendor/echarts.min.js') }}"></script>
+{% else %}
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+{% endif %}
+<script src="{{ url_for('static', filename='js/charts/theme.js') }}"></script>
+<script src="{{ url_for('static', filename='js/charts/stats.js') }}"></script>
+{% endblock %}

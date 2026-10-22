@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% from '_macros.html' import field, select_field, textarea_field %}
+{% block title %}{{ '编辑投递' if application else '记录投递' }}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <h4 class="mb-1">{{ '编辑投递' if application else '记录投递' }}</h4>
+    <p class="text-muted small mb-0">状态会随面试记录自动推进，也可以在这里手动调整</p>
+  </div>
+  <a href="{{ url_for('applications.index') }}" class="btn btn-light btn-sm">返回列表</a>
+</div>
+
+<form method="post" novalidate>
+  {{ form.hidden_tag() }}
+  <div class="row g-3">
+    <div class="col-lg-8">
+      <div class="card">
+        <div class="card-header">基本信息</div>
+        <div class="card-body p-4">
+          <div class="row g-3">
+            {{ select_field(form.company_id, 'col-md-6', help='企业列表在「企业库」中维护') }}
+            {{ field(form.position_name, 'col-md-6') }}
+            {{ select_field(form.job_type_id, 'col-md-4', help='可在「职位类型」中自定义') }}
+            {{ select_field(form.channel, 'col-md-4') }}
+            {{ select_field(form.status, 'col-md-4') }}
+            {{ field(form.applied_at, 'col-md-4') }}
+            {{ field(form.salary_min, 'col-md-4') }}
+            {{ field(form.salary_max, 'col-md-4') }}
+            {{ select_field(form.resume_id, 'col-md-4', help='不绑定也能保存') }}
+            {{ field(form.jd_url, 'col-12', help='可留空；填写时同样会自动补全协议') }}
+            {{ textarea_field(form.notes, 'col-12', rows=4) }}
+          </div>
+        </div>
+        <div class="card-footer bg-white d-flex gap-2 py-3">
+          <button type="submit" class="btn btn-primary">{{ form.submit.label.text }}</button>
+          <a href="{{ url_for('applications.index') }}" class="btn btn-light">取消</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="card">
+        <div class="card-header"><i class="bi bi-lightbulb me-1"></i>填写提示</div>
+        <div class="card-body small text-muted">
+          <ul class="ps-3 mb-0">
+            <li class="mb-2">薪资单位是 <strong>K/月</strong>，只填下限也可以。</li>
+            <li class="mb-2">投递状态支持「已投递 → 已查看 → 面试中 → Offer」，系统会阻止非法跳转。</li>
+            <li class="mb-2">绑定简历后，在统计页可以按简历对比通过率。</li>
+            {% if not has_resume %}
+              <li class="text-warning">还没有上传简历，<a href="{{ url_for('resumes.upload') }}">去上传</a>后可在此绑定。</li>
+            {% endif %}
+          </ul>
+        </div>
+      </div>
+      {% if application %}
+        <div class="card mt-3">
+          <div class="card-header">记录痕迹</div>
+          <div class="card-body small text-muted">
+            <div>创建：{{ application.created_at | dt }}</div>
+            <div>更新：{{ application.updated_at | dt }}</div>
+            <div>最高阶段：{{ application.stage_label }}</div>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</form>
+{% endblock %}

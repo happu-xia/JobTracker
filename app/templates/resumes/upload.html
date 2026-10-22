@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% block title %}上传简历{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <h4 class="mb-1">上传简历</h4>
+    <p class="text-muted small mb-0">PDF / DOC / DOCX，单个文件不超过 {{ max_mb }}MB</p>
+  </div>
+  <a href="{{ url_for('resumes.index') }}" class="btn btn-light btn-sm">返回列表</a>
+</div>
+
+<div class="row">
+  <div class="col-lg-7">
+    <form method="post" enctype="multipart/form-data" novalidate>
+      {{ form.hidden_tag() }}
+      <div class="card">
+        <div class="card-body p-4">
+          <label class="form-label">{{ form.file.label.text }}</label>
+          <div class="upload-drop" id="dropZone">
+            <i class="bi bi-cloud-arrow-up"></i>
+            <div class="mt-2">
+              <label for="{{ form.file.id }}" class="btn btn-light btn-sm mb-0">选择文件</label>
+              <span class="text-muted small ms-2">或把文件拖到这里</span>
+            </div>
+            <div class="small text-muted mt-2" id="fileName">未选择文件</div>
+            {{ form.file(class='d-none' + (' is-invalid' if form.file.errors else '')) }}
+          </div>
+          {% if form.file.errors %}
+            <div class="text-danger small mt-2">{{ form.file.errors[0] }}</div>
+          {% endif %}
+
+          <div class="mt-4">
+            <label class="form-label">{{ form.set_default.label.text }}</label>
+            {{ form.set_default(class='form-select') }}
+            <div class="form-text">
+              {% if items_count %}
+                设为默认后，新建投递时会自动选中这份简历。
+              {% else %}
+                这是第一份简历，会自动成为默认简历。
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        <div class="card-footer bg-white d-flex gap-2 py-3">
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-cloud-arrow-up"></i> {{ form.submit.label.text }}
+          </button>
+          <a href="{{ url_for('resumes.index') }}" class="btn btn-light">取消</a>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="card">
+      <div class="card-header"><i class="bi bi-info-circle me-1"></i>上传前后须知</div>
+      <div class="card-body small text-muted">
+        <ul class="ps-3 mb-0">
+          <li class="mb-2">文件会以随机 UUID 命名保存到本地磁盘，文件名里的特殊字符不会进入路径。</li>
+          <li class="mb-2">系统会读取文件头判断真实类型，仅把 .exe 改名为 .pdf 会被拒绝。</li>
+          <li class="mb-2">同一份文件（内容完全相同）重复上传会提示已存在，避免磁盘冗余。</li>
+          <li>删除简历不会删除关联的投递记录，只是把绑定关系置空。</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (function () {
+    const input = document.getElementById('{{ form.file.id }}');
+    const zone = document.getElementById('dropZone');
+    const label = document.getElementById('fileName');
+    if (!input || !zone) return;
+
+    function show() {
+      label.textContent = input.files.length ? input.files[0].name : '未选择文件';
+    }
+    input.addEventListener('change', show);
+
+    ['dragenter', 'dragover'].forEach(function (evt) {
+      zone.addEventListener(evt, function (e) { e.preventDefault(); zone.classList.add('dragging'); });
+    });
+    ['dragleave', 'drop'].forEach(function (evt) {
+      zone.addEventListener(evt, function (e) { e.preventDefault(); zone.classList.remove('dragging'); });
+    });
+    zone.addEventListener('drop', function (e) {
+      if (e.dataTransfer.files.length) {
+        input.files = e.dataTransfer.files;
+        show();
+      }
+    });
+  })();
+</script>
+{% endblock %}

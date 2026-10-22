@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% from '_macros.html' import field %}
+{% block title %}{{ '编辑职位类型' if item else '新增职位类型' }}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <h4 class="mb-1">{{ '编辑职位类型' if item else '新增职位类型' }}</h4>
+    <p class="text-muted small mb-0">名称与颜色都会用在统计图表里</p>
+  </div>
+  <a href="{{ url_for('job_types.index') }}" class="btn btn-light btn-sm">返回列表</a>
+</div>
+
+<div class="row">
+  <div class="col-lg-6">
+    <form method="post" novalidate>
+      {{ form.hidden_tag() }}
+      <div class="card">
+        <div class="card-body p-4">
+          <div class="row g-3">
+            {{ field(form.name, 'col-12', help='例如：后端开发、算法工程师、产品经理') }}
+            <div class="col-md-6">
+              {{ form.color.label(class='form-label') }}
+              <div class="d-flex align-items-center gap-2">
+                {{ form.color(class='form-control form-control-color') }}
+                <input type="text" class="form-control" id="colorText"
+                       value="{{ form.color.data or '#0d6efd' }}" maxlength="7">
+              </div>
+              {% if form.color.errors %}<div class="text-danger small mt-1">{{ form.color.errors[0] }}</div>{% endif %}
+            </div>
+            {{ field(form.sort_order, 'col-md-6', help='数字越小越靠前，留空自动排到末尾') }}
+          </div>
+        </div>
+        <div class="card-footer bg-white d-flex gap-2 py-3">
+          <button type="submit" class="btn btn-primary">{{ form.submit.label.text }}</button>
+          <a href="{{ url_for('job_types.index') }}" class="btn btn-light">取消</a>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header">效果预览</div>
+      <div class="card-body">
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <span class="dot dot-lg" id="previewDot" style="background:{{ form.color.data or '#0d6efd' }}"></span>
+          <span class="fw-semibold" id="previewName">{{ form.name.data or '职位类型名称' }}</span>
+        </div>
+        <p class="text-muted small mb-0">
+          这个颜色会用在「职位类型分布」图表和投递列表的类型标识上，建议不同类型选差异明显的颜色。
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (function () {
+    const color = document.getElementById('{{ form.color.id }}');
+    const text = document.getElementById('colorText');
+    const dot = document.getElementById('previewDot');
+    const nameInput = document.getElementById('{{ form.name.id }}');
+    const nameLabel = document.getElementById('previewName');
+    if (!color) return;
+
+    function paint(value) {
+      if (/^#[0-9a-fA-F]{6}$/.test(value)) {
+        dot.style.background = value;
+        color.value = value;
+        text.value = value;
+      }
+    }
+    color.addEventListener('input', function () { paint(color.value); });
+    text.addEventListener('input', function () { paint(text.value); });
+    nameInput.addEventListener('input', function () {
+      nameLabel.textContent = nameInput.value || '职位类型名称';
+    });
+  })();
+</script>
+{% endblock %}

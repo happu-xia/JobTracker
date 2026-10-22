@@ -1,0 +1,488 @@
+/* ============================================================
+   JobTracker 样式
+   设计原则：浅色底 + 白卡片 + 低对比边框，信息密度优先，避免花哨动效
+   ============================================================ */
+
+:root {
+  --jt-bg: #f4f6fa;
+  --jt-card: #ffffff;
+  --jt-border: #e6e9ef;
+  --jt-text: #1f2430;
+  --jt-muted: #6b7280;
+  --jt-primary: #3b6ef6;
+  --jt-primary-soft: #eaf0ff;
+  --jt-radius: 14px;
+  --jt-shadow: 0 1px 2px rgba(16, 24, 40, .04), 0 4px 16px rgba(16, 24, 40, .04);
+}
+
+body {
+  background: var(--jt-bg);
+  color: var(--jt-text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+  font-size: 14px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-main {
+  flex: 1 0 auto;
+  padding: 24px 0 40px;
+}
+
+/* ---------------- 导航 ---------------- */
+.app-navbar {
+  background: rgba(255, 255, 255, .92);
+  backdrop-filter: saturate(180%) blur(8px);
+  border-bottom: 1px solid var(--jt-border);
+  padding: .55rem 0;
+}
+
+.app-navbar .navbar-brand {
+  font-size: 1.02rem;
+  color: var(--jt-text);
+  letter-spacing: .2px;
+}
+
+.brand-mark {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #4b7bff, #6f5bf0);
+  color: #fff;
+  font-size: .9rem;
+}
+
+.brand-mark-lg {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  font-size: 1.4rem;
+}
+
+.app-navbar .nav-link {
+  color: var(--jt-muted);
+  border-radius: 9px;
+  padding: .42rem .72rem !important;
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  font-weight: 500;
+}
+
+.app-navbar .nav-link i {
+  font-size: 1rem;
+  opacity: .85;
+}
+
+.app-navbar .nav-link:hover {
+  background: #f2f4f9;
+  color: var(--jt-text);
+}
+
+.app-navbar .nav-link.active {
+  background: var(--jt-primary-soft);
+  color: #2450c8;
+}
+
+.avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--jt-primary-soft);
+  color: #2450c8;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .78rem;
+  font-weight: 700;
+}
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--jt-muted);
+}
+
+.btn-ghost:hover {
+  background: #f2f4f9;
+  color: var(--jt-text);
+}
+
+/* ---------------- 卡片 ---------------- */
+.card {
+  border: 1px solid var(--jt-border);
+  border-radius: var(--jt-radius);
+  background: var(--jt-card);
+  box-shadow: var(--jt-shadow);
+}
+
+.card-header {
+  background: #fff;
+  border-bottom: 1px solid var(--jt-border);
+  font-weight: 600;
+  font-size: .92rem;
+  padding: .85rem 1.1rem;
+  border-radius: var(--jt-radius) var(--jt-radius) 0 0 !important;
+}
+
+.card-footer {
+  border-top: 1px solid var(--jt-border);
+  border-radius: 0 0 var(--jt-radius) var(--jt-radius) !important;
+}
+
+.page-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.page-head h4 {
+  font-weight: 650;
+  font-size: 1.24rem;
+}
+
+/* ---------------- 指标卡 ---------------- */
+.kpi-card .card-body {
+  padding: 1rem 1.1rem;
+}
+
+.kpi-label {
+  font-size: .8rem;
+  color: var(--jt-muted);
+  font-weight: 500;
+}
+
+.kpi-value {
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -.5px;
+}
+
+.kpi-hint {
+  font-size: .74rem;
+  color: var(--jt-muted);
+  margin-top: .2rem;
+}
+
+.kpi-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .9rem;
+}
+
+/* ---------------- 状态徽章 ---------------- */
+.status-badge {
+  font-size: .72rem;
+  font-weight: 600;
+  padding: .34em .68em;
+}
+
+.status-applied { background: #eaf1ff; color: #2c62d9; }
+.status-viewed { background: #e6f7f0; color: #12805c; }
+.status-interviewing { background: #fff5e0; color: #9a6400; }
+.status-offer { background: #ffeceb; color: #cf2f2f; }
+.status-rejected { background: #eef0f3; color: #5a6270; }
+.status-withdrawn { background: #f3f4f6; color: #8a919c; }
+
+/* ---------------- 状态页签 ---------------- */
+.status-tabs .nav-link {
+  color: var(--jt-muted);
+  border-radius: 999px;
+  padding: .34rem .8rem;
+  font-size: .84rem;
+  font-weight: 500;
+  background: #fff;
+  border: 1px solid var(--jt-border);
+}
+
+.status-tabs .nav-link:hover {
+  color: var(--jt-text);
+  border-color: #cdd5e3;
+}
+
+.status-tabs .nav-link.active {
+  background: var(--jt-primary);
+  border-color: var(--jt-primary);
+  color: #fff;
+}
+
+.tab-count {
+  display: inline-block;
+  min-width: 18px;
+  padding: 0 .3em;
+  margin-left: .25rem;
+  border-radius: 999px;
+  background: rgba(107, 114, 128, .12);
+  font-size: .72rem;
+  text-align: center;
+}
+
+.status-tabs .nav-link.active .tab-count {
+  background: rgba(255, 255, 255, .25);
+}
+
+/* ---------------- 表格 ---------------- */
+.table {
+  --bs-table-bg: transparent;
+  font-size: .86rem;
+}
+
+.table > thead th {
+  font-size: .76rem;
+  font-weight: 600;
+  color: var(--jt-muted);
+  text-transform: none;
+  letter-spacing: .2px;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--jt-border);
+}
+
+.table > tbody > tr > td {
+  vertical-align: middle;
+  border-color: #f0f2f6;
+}
+
+.app-table > tbody > tr:hover {
+  background: #fafbff;
+}
+
+/* ---------------- 图表 ---------------- */
+.chart {
+  width: 100%;
+  height: 320px;
+}
+
+@media (max-width: 575.98px) {
+  .chart { height: 260px; }
+}
+
+/* ---------------- 空状态 ---------------- */
+.empty-state {
+  text-align: center;
+  padding: 2rem 1rem;
+}
+
+.empty-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: #f1f4fa;
+  color: #9aa4b8;
+  font-size: 1.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto .8rem;
+}
+
+/* ---------------- 面试时间线 ---------------- */
+.timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 1.1rem;
+  position: relative;
+}
+
+.timeline::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 6px;
+  bottom: 6px;
+  width: 2px;
+  background: #eef0f5;
+}
+
+.timeline-item {
+  position: relative;
+  padding: 0 0 1.1rem 0;
+}
+
+.timeline-item:last-child {
+  padding-bottom: 0;
+}
+
+.timeline-dot {
+  position: absolute;
+  left: -1.1rem;
+  top: 5px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px #fff;
+}
+
+/* ---------------- 简历 ---------------- */
+.resume-card.is-default {
+  border-color: #b7e4cd;
+  box-shadow: 0 0 0 1px #d5f0e2, var(--jt-shadow);
+}
+
+.file-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 11px;
+  background: #f1f4fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  color: #5a6478;
+  flex: 0 0 auto;
+}
+
+.upload-drop {
+  border: 1.5px dashed #cdd5e3;
+  border-radius: 12px;
+  padding: 1.6rem 1rem;
+  text-align: center;
+  background: #fafbff;
+  transition: border-color .15s, background .15s;
+}
+
+.upload-drop > i {
+  font-size: 1.9rem;
+  color: #9aa4b8;
+}
+
+.upload-drop.dragging {
+  border-color: var(--jt-primary);
+  background: var(--jt-primary-soft);
+}
+
+.pdf-frame {
+  width: 100%;
+  height: calc(100vh - 240px);
+  min-height: 520px;
+  border: 0;
+  border-radius: 0 0 var(--jt-radius) var(--jt-radius);
+}
+
+/* ---------------- 小元素 ---------------- */
+.dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: .35rem;
+  vertical-align: middle;
+}
+
+.dot-lg {
+  width: 12px;
+  height: 12px;
+}
+
+.color-chip {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  vertical-align: middle;
+  margin-right: .4rem;
+  border: 1px solid rgba(0, 0, 0, .08);
+}
+
+.min-w-0 {
+  min-width: 0;
+}
+
+/* 日期区间：两个 date input 平分宽度，避免出现「yyyy/mm/dd」占位被压扁 */
+.date-range input[type="date"] {
+  min-width: 0;
+  padding-left: .5rem;
+  padding-right: .3rem;
+  font-size: .84rem;
+}
+
+/* 排序按钮：固定方形，仅显示图标 */
+.move-btn {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+/* 空状态图标：字体图标的行高修正，避免被裁切 */
+.empty-icon i {
+  display: block;
+  line-height: 1;
+}
+
+/* 表格里的图标按钮统一尺寸，避免出现「空按钮」观感 */
+.table .btn-sm {
+  min-width: 30px;
+  line-height: 1.4;
+}
+
+/* ---------------- 认证页 ---------------- */
+.auth-wrap {
+  min-height: 70vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+}
+
+.auth-card-wide {
+  max-width: 480px;
+}
+
+/* ---------------- 错误页 ---------------- */
+.error-wrap {
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.error-card {
+  max-width: 520px;
+  width: 100%;
+}
+
+.error-code {
+  font-size: 3.4rem;
+  font-weight: 800;
+  letter-spacing: -2px;
+  color: #d5dcea;
+  line-height: 1;
+  margin-bottom: .6rem;
+}
+
+/* ---------------- 页脚 ---------------- */
+.app-footer {
+  border-top: 1px solid var(--jt-border);
+  background: #fff;
+  padding: 14px 0;
+  font-size: .78rem;
+  color: var(--jt-muted);
+}
+
+/* ---------------- 打印 ---------------- */
+@media print {
+  .app-navbar, .app-footer, .status-tabs, form, .btn { display: none !important; }
+  body { background: #fff; }
+  .card { box-shadow: none; border-color: #ddd; }
+}

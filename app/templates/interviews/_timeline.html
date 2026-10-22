@@ -1,0 +1,49 @@
+{% if application.interviews %}
+<ul class="timeline">
+  {% for item in application.interviews %}
+    <li class="timeline-item">
+      <span class="timeline-dot" style="background:{{ RESULT_COLORS.get(item.result, '#adb5bd') }}"></span>
+      <div class="d-flex flex-wrap justify-content-between gap-2">
+        <div>
+          <span class="fw-semibold">{{ item.round_label }}</span>
+          <span class="badge text-bg-{{ RESULT_BADGES.get(item.result, 'secondary') }} ms-1">
+            {{ RESULT_LABELS.get(item.result, item.result) }}
+          </span>
+        </div>
+        <div class="text-muted small">{{ item.scheduled_at | dt }}</div>
+      </div>
+      {% if item.feedback %}
+        <div class="small text-muted mt-2 p-2 bg-light rounded" style="white-space:pre-wrap">{{ item.feedback }}</div>
+      {% endif %}
+      <div class="d-flex gap-2 mt-2">
+        <form method="post" action="{{ url_for('interviews.update_result', app_id=application.id, interview_id=item.id) }}"
+              class="d-flex gap-1 align-items-center">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <select name="result" class="form-select form-select-sm" style="width:auto">
+            {% for key, label in RESULT_LABELS.items() %}
+              <option value="{{ key }}" {% if item.result == key %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+          <button class="btn btn-sm btn-light" type="submit">更新结果</button>
+        </form>
+        <a href="{{ url_for('interviews.edit', app_id=application.id, interview_id=item.id) }}"
+           class="btn btn-sm btn-light">编辑</a>
+        <form method="post" action="{{ url_for('interviews.delete', app_id=application.id, interview_id=item.id) }}"
+              onsubmit="return confirm('删除这场面试记录？');">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn btn-sm btn-outline-danger" type="submit">删除</button>
+        </form>
+      </div>
+    </li>
+  {% endfor %}
+</ul>
+{% else %}
+<div class="empty-state py-4">
+  <div class="empty-icon"><i class="bi bi-calendar-x"></i></div>
+  <h6 class="mb-1">还没有面试记录</h6>
+  <p class="text-muted small mb-3">收到面试邀约后在这里登记，系统会自动把状态推进为「面试中」</p>
+  <a href="{{ url_for('interviews.create', app_id=application.id) }}" class="btn btn-primary btn-sm">
+    <i class="bi bi-plus-lg"></i> 添加面试记录
+  </a>
+</div>
+{% endif %}

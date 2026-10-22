@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% from '_macros.html' import empty_state, delete_confirm %}
+{% block title %}企业库{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <h4 class="mb-1">企业库</h4>
+    <p class="text-muted small mb-0">共 {{ pagination.total }} 家企业 · 记录官网链接，投递时一键跳转</p>
+  </div>
+  <a href="{{ url_for('companies.create') }}" class="btn btn-primary btn-sm">
+    <i class="bi bi-plus-lg"></i> 添加企业
+  </a>
+</div>
+
+<div class="card mb-3">
+  <div class="card-body py-3">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-md-5">
+        <label class="form-label small text-muted mb-1">关键词</label>
+        <div class="input-group">
+          <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+          <input type="search" name="q" value="{{ q }}" class="form-control" placeholder="企业名称或行业">
+        </div>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small text-muted mb-1">城市</label>
+        <select name="city" class="form-select">
+          <option value="">全部城市</option>
+          {% for item in cities %}
+            <option value="{{ item }}" {% if item == city %}selected{% endif %}>{{ item }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4 d-flex gap-2">
+        <button class="btn btn-primary" type="submit">筛选</button>
+        {% if q or city %}
+          <a href="{{ url_for('companies.index') }}" class="btn btn-light">重置</a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body p-0">
+    {% if pagination.items %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th style="min-width:200px">企业名称</th>
+              <th>官网</th>
+              <th>行业 / 规模</th>
+              <th>城市</th>
+              <th class="text-center">投递数</th>
+              <th class="text-end">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for company in pagination.items %}
+              <tr>
+                <td>
+                  <a href="{{ url_for('companies.detail', company_id=company.id) }}"
+                     class="fw-semibold text-decoration-none">{{ company.name }}</a>
+                  {% if company.notes %}
+                    <div class="text-muted small text-truncate" style="max-width:260px">{{ company.notes }}</div>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if company.website %}
+                    <a href="{{ company.website }}" target="_blank" rel="noopener noreferrer"
+                       class="text-decoration-none small" title="{{ company.website }}">
+                      <i class="bi bi-box-arrow-up-right"></i> {{ company.website | urlhost }}
+                    </a>
+                  {% else %}
+                    <span class="text-muted small">未填写</span>
+                  {% endif %}
+                </td>
+                <td class="small text-muted">
+                  {{ company.industry or '—' }}
+                  {% if company.scale %}<span class="text-body-tertiary"> / {{ SCALE_LABELS.get(company.scale, company.scale) }}</span>{% endif %}
+                </td>
+                <td class="small text-muted">{{ company.city or '—' }}</td>
+                <td class="text-center">
+                  {% set count = counts.get(company.id, 0) %}
+                  {% if count %}
+                    <a href="{{ url_for('applications.index', company_id=company.id) }}"
+                       class="badge text-bg-primary text-decoration-none">{{ count }}</a>
+                  {% else %}
+                    <span class="text-muted small">0</span>
+                  {% endif %}
+                </td>
+                <td class="text-end text-nowrap">
+                  <a href="{{ url_for('applications.create', company_id=company.id) }}"
+                     class="btn btn-sm btn-outline-primary" title="为该企业记录投递">
+                    <i class="bi bi-send"></i>
+                  </a>
+                  <a href="{{ url_for('companies.edit', company_id=company.id) }}"
+                     class="btn btn-sm btn-light" title="编辑"><i class="bi bi-pencil"></i></a>
+                  {{ delete_confirm(url_for('companies.delete', company_id=company.id),
+                                    label='',
+                                    icon='trash',
+                                    message='删除企业「' ~ company.name ~ '」？若存在关联投递将一并删除。',
+                                    extra_class='btn-outline-danger') }}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="p-4">
+        {% if q or city %}
+          {{ empty_state('search', '没有匹配的企业', '换个关键词或清空筛选条件试试', url_for('companies.index'), '清空筛选') }}
+        {% else %}
+          {{ empty_state('building', '企业库还是空的', '先把目标公司录进来，之后投递记录可以直接选择', url_for('companies.create'), '添加第一家企业') }}
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+{% include 'partials/pagination.html' %}
+{% endblock %}

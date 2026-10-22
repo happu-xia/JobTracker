@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}预览 {{ resume.original_name }}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <h4 class="mb-1">{{ resume.original_name }}</h4>
+    <p class="text-muted small mb-0">
+      {{ resume.ext | upper }} · {{ resume.size_bytes | filesize }} · 上传于 {{ resume.created_at | dt }}
+    </p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('resumes.download', resume_id=resume.id) }}" class="btn btn-primary btn-sm">
+      <i class="bi bi-download"></i> 下载
+    </a>
+    <a href="{{ url_for('resumes.index') }}" class="btn btn-light btn-sm">返回</a>
+  </div>
+</div>
+
+{% if inline %}
+  <div class="card">
+    <div class="card-body p-0">
+      <iframe src="{{ url_for('resumes.preview', resume_id=resume.id) }}" class="pdf-frame" title="简历预览"></iframe>
+    </div>
+  </div>
+{% else %}
+  <div class="card">
+    <div class="card-body p-5 text-center">
+      <div class="empty-icon mx-auto"><i class="bi bi-file-earmark-word"></i></div>
+      <h6 class="mt-3">Word 文档不支持在线预览</h6>
+      <p class="text-muted small mb-3">浏览器无法内联渲染 .doc / .docx，请下载后查看。</p>
+      <a href="{{ url_for('resumes.download', resume_id=resume.id) }}" class="btn btn-primary btn-sm">
+        <i class="bi bi-download"></i> 下载查看
+      </a>
+    </div>
+  </div>
+{% endif %}
+{% endblock %}

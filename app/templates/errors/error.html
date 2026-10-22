@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}{{ status }} {{ title }}{% endblock %}
+
+{% block content %}
+<div class="error-wrap">
+  <div class="card error-card">
+    <div class="card-body p-5 text-center">
+      <div class="error-code">{{ status }}</div>
+      <h5 class="mb-2">{{ title }}</h5>
+      <p class="text-muted mb-1">{{ message }}</p>
+      {% if hint %}<p class="text-muted small">{{ hint }}</p>{% endif %}
+      <div class="d-flex justify-content-center gap-2 mt-4">
+        <a href="{{ url_for('main.index') }}" class="btn btn-primary btn-sm">
+          <i class="bi bi-house"></i> 回到看板
+        </a>
+        <button type="button" class="btn btn-light btn-sm" onclick="history.back()">返回上一页</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

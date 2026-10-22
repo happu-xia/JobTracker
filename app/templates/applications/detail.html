@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% from '_macros.html' import status_badge, delete_confirm %}
+{% block title %}{{ application.position_name }}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <nav aria-label="breadcrumb" class="mb-1">
+      <ol class="breadcrumb small mb-0">
+        <li class="breadcrumb-item"><a href="{{ url_for('applications.index') }}">投递记录</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ application.position_name }}</li>
+      </ol>
+    </nav>
+    <h4 class="mb-1">
+      {{ application.position_name }}
+      {{ status_badge(application.status) }}
+      {% if application.has_interview %}
+        <span class="badge text-bg-warning align-middle">有面试</span>
+      {% endif %}
+    </h4>
+    <p class="text-muted small mb-0">
+      <a href="{{ url_for('companies.detail', company_id=application.company_id) }}" class="text-decoration-none">
+        <i class="bi bi-building me-1"></i>{{ application.company.name }}
+      </a>
+      <span class="mx-2">·</span>{{ application.salary_label }}
+      <span class="mx-2">·</span>{{ CHANNEL_LABELS.get(application.channel, application.channel) }}
+    </p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('interviews.create', app_id=application.id) }}" class="btn btn-primary btn-sm">
+      <i class="bi bi-calendar-plus"></i> 添加面试
+    </a>
+    <a href="{{ url_for('applications.edit', app_id=application.id) }}" class="btn btn-light btn-sm">
+      <i class="bi bi-pencil"></i> 编辑
+    </a>
+    {{ delete_confirm(url_for('applications.delete', app_id=application.id),
+                      label='删除',
+                      message='删除该投递记录？相关面试记录会一并删除（简历文件保留）。') }}
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-4">
+    <div class="card mb-3">
+      <div class="card-header">推进状态</div>
+      <div class="card-body">
+        {% if next_statuses %}
+          <div class="d-flex flex-wrap gap-2">
+            {% for key, label in next_statuses %}
+              <form method="post" action="{{ url_for('applications.change_status', app_id=application.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="status" value="{{ key }}">
+                <button type="submit" class="btn btn-sm btn-outline-secondary">
+                  → {{ label }}
+                </button>
+              </form>
+            {% endfor %}
+          </div>
+          <div class="form-text mt-2">只允许合法的状态流转，非法跳转会被拒绝。</div>
+        {% else %}
+          <p class="text-muted small mb-0">该状态为终态，没有可继续推进的状态。</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">投递信息</div>
+      <div class="card-body">
+        <dl class="row mb-0 small">
+          <dt class="col-4 fw-normal text-muted">职位类型</dt>
+          <dd class="col-8">
+            {% if application.job_type %}
+              <span class="dot" style="background:{{ application.job_type.color }}"></span>{{ application.job_type.name }}
+            {% else %}未分类{% endif %}
+          </dd>
+
+          <dt class="col-4 fw-normal text-muted">投递时间</dt>
+          <dd class="col-8">{{ application.applied_at | dt }}</dd>
+
+          <dt class="col-4 fw-normal text-muted">最高阶段</dt>
+          <dd class="col-8">{{ application.stage_label }}</dd>
+
+          <dt class="col-4 fw-normal text-muted">企业响应</dt>
+          <dd class="col-8">
+            {% if application.response_days is not none %}
+              {{ application.response_days }} 天
+            {% else %}未查看{% endif %}
+          </dd>
+
+          <dt class="col-4 fw-normal text-muted">使用简历</dt>
+          <dd class="col-8">
+            {% if application.resume %}
+              <a href="{{ url_for('resumes.download', resume_id=application.resume.id) }}" class="text-decoration-none">
+                <i class="bi bi-file-earmark-arrow-down"></i> {{ application.resume.original_name }}
+              </a>
+            {% else %}<span class="text-muted">未绑定</span>{% endif %}
+          </dd>
+
+          <dt class="col-4 fw-normal text-muted">JD 链接</dt>
+          <dd class="col-8">
+            {% if application.jd_url %}
+              <a href="{{ application.jd_url }}" target="_blank" rel="noopener noreferrer">
+                {{ application.jd_url | urlhost }} <i class="bi bi-box-arrow-up-right"></i>
+              </a>
+            {% else %}<span class="text-muted">—</span>{% endif %}
+          </dd>
+        </dl>
+        {% if application.notes %}
+          <hr>
+          <div class="small text-muted" style="white-space:pre-wrap">{{ application.notes }}</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-list-check me-1"></i>面试记录（{{ application.interviews | length }} 场）</span>
+        <a href="{{ url_for('interviews.create', app_id=application.id) }}" class="small">添加</a>
+      </div>
+      <div class="card-body">
+        {% include 'interviews/_timeline.html' %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

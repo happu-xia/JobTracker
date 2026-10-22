@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% from '_macros.html' import field, select_field, textarea_field %}
+{% block title %}{{ '编辑企业' if company else '添加企业' }}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <h4 class="mb-1">{{ '编辑企业' if company else '添加企业' }}</h4>
+    <p class="text-muted small mb-0">官网只填域名也可以，系统会自动补全 https://</p>
+  </div>
+  <a href="{{ url_for('companies.index') }}" class="btn btn-light btn-sm">返回列表</a>
+</div>
+
+<form method="post" novalidate>
+  {{ form.hidden_tag() }}
+  <div class="card">
+    <div class="card-body p-4">
+      <div class="row g-3">
+        {{ field(form.name, 'col-12', help='同一账号下企业名称不能重复') }}
+        {{ field(form.website, 'col-12', help='支持填写 www.example.com，保存时会自动补全协议并校验格式') }}
+        {{ field(form.industry, 'col-md-4') }}
+        {{ select_field(form.scale, 'col-md-4') }}
+        {{ field(form.city, 'col-md-4') }}
+        {{ textarea_field(form.notes, 'col-12', rows=3) }}
+      </div>
+    </div>
+    <div class="card-footer bg-white d-flex gap-2 py-3">
+      <button type="submit" class="btn btn-primary">{{ form.submit.label.text }}</button>
+      <a href="{{ url_for('companies.index') }}" class="btn btn-light">取消</a>
+      {% if company %}
+        <span class="ms-auto text-muted small align-self-center">
+          创建于 {{ company.created_at | dt }}
+        </span>
+      {% endif %}
+    </div>
+  </div>
+</form>
+
+<datalist id="industryOptions">
+  {% for option in form.industry_options %}<option value="{{ option }}">{% endfor %}
+</datalist>
+{% endblock %}

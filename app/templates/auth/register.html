@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block title %}注册{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+  <div class="card auth-card auth-card-wide">
+    <div class="card-body p-4 p-md-5">
+      <div class="text-center mb-4">
+        <div class="brand-mark brand-mark-lg mx-auto mb-3"><i class="bi bi-person-plus-fill"></i></div>
+        <h4 class="mb-1">创建账号</h4>
+        <p class="text-muted small mb-0">注册后会自动为你预置 5 个常用职位类型</p>
+      </div>
+
+      <form method="post" novalidate>
+        {{ form.hidden_tag() }}
+        <div class="row g-3">
+          <div class="col-12">
+            {{ form.username.label(class='form-label') }}
+            {{ form.username(class='form-control' + (' is-invalid' if form.username.errors else '')) }}
+            {% if form.username.errors %}<div class="invalid-feedback d-block">{{ form.username.errors[0] }}</div>{% endif %}
+          </div>
+          <div class="col-12">
+            {{ form.email.label(class='form-label') }}
+            {{ form.email(class='form-control' + (' is-invalid' if form.email.errors else '')) }}
+            {% if form.email.errors %}<div class="invalid-feedback d-block">{{ form.email.errors[0] }}</div>{% endif %}
+          </div>
+          <div class="col-md-6">
+            {{ form.password.label(class='form-label') }}
+            {{ form.password(class='form-control' + (' is-invalid' if form.password.errors else '')) }}
+            {% if form.password.errors %}<div class="invalid-feedback d-block">{{ form.password.errors[0] }}</div>{% endif %}
+          </div>
+          <div class="col-md-6">
+            {{ form.password2.label(class='form-label') }}
+            {{ form.password2(class='form-control' + (' is-invalid' if form.password2.errors else '')) }}
+            {% if form.password2.errors %}<div class="invalid-feedback d-block">{{ form.password2.errors[0] }}</div>{% endif %}
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary w-100 btn-lg mt-4">注册并开始记录</button>
+      </form>
+
+      <div class="text-center mt-4 small text-muted">
+        已有账号？<a href="{{ url_for('auth.login') }}">去登录</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

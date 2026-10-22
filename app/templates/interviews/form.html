@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% from '_macros.html' import select_field, field, textarea_field %}
+{% block title %}{{ '编辑面试' if interview else '添加面试' }}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <h4 class="mb-1">{{ '编辑面试' if interview else '添加面试' }}</h4>
+    <p class="text-muted small mb-0">
+      {{ application.company.name }} · {{ application.position_name }}
+    </p>
+  </div>
+  <a href="{{ url_for('applications.detail', app_id=application.id) }}" class="btn btn-light btn-sm">返回详情</a>
+</div>
+
+<div class="row">
+  <div class="col-lg-7">
+    <form method="post" novalidate>
+      {{ form.hidden_tag() }}
+      <div class="card">
+        <div class="card-body p-4">
+          <div class="row g-3">
+            {{ select_field(form.round, 'col-md-4') }}
+            {{ field(form.scheduled_at, 'col-md-8', help='面试时间精确到分钟') }}
+            {{ select_field(form.result, 'col-md-4') }}
+            {{ textarea_field(form.feedback, 'col-12', rows=4) }}
+          </div>
+        </div>
+        <div class="card-footer bg-white d-flex gap-2 py-3">
+          <button type="submit" class="btn btn-primary">{{ form.submit.label.text }}</button>
+          <a href="{{ url_for('applications.detail', app_id=application.id) }}" class="btn btn-light">取消</a>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="card">
+      <div class="card-header"><i class="bi bi-info-circle me-1"></i>说明</div>
+      <div class="card-body small text-muted">
+        <ul class="ps-3 mb-0">
+          <li class="mb-2">同一投递的每一轮次只能登记一次（一面 / 二面 / 三面 / HR 面 / 其他），重复登记会提示编辑已有记录。</li>
+          <li class="mb-2">新增面试会把投递状态自动推进为「面试中」，这样「有无面试」与漏斗统计口径一致。</li>
+          <li>填写复盘内容后，统计页可以看到每一轮的通过率。</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

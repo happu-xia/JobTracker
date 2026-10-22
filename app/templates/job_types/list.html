@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% from '_macros.html' import empty_state, delete_confirm %}
+{% block title %}职位类型{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <h4 class="mb-1">职位类型</h4>
+    <p class="text-muted small mb-0">
+      共 {{ items | length }} 个类型，启用 {{ active_count }} 个 · 颜色会直接用于统计图表
+    </p>
+  </div>
+  <a href="{{ url_for('job_types.create') }}" class="btn btn-primary btn-sm">
+    <i class="bi bi-plus-lg"></i> 新增类型
+  </a>
+</div>
+
+<div class="card">
+  <div class="card-body p-0">
+    {% if items %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th style="width:60px">排序</th>
+              <th>类型名称</th>
+              <th>图表颜色</th>
+              <th class="text-center">被引用</th>
+              <th class="text-center">状态</th>
+              <th class="text-end">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item, usage in items %}
+              <tr class="{% if not item.is_active %}text-muted{% endif %}">
+                <td>
+                  <div class="d-flex gap-1">
+                    <form method="post" action="{{ url_for('job_types.move', type_id=item.id) }}">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <input type="hidden" name="direction" value="up">
+                      <button class="btn btn-sm btn-outline-secondary move-btn" type="submit" title="上移">
+                        <i class="bi bi-arrow-up"></i>
+                      </button>
+                    </form>
+                    <form method="post" action="{{ url_for('job_types.move', type_id=item.id) }}">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <input type="hidden" name="direction" value="down">
+                      <button class="btn btn-sm btn-outline-secondary move-btn" type="submit" title="下移">
+                        <i class="bi bi-arrow-down"></i>
+                      </button>
+                    </form>
+                  </div>
+                </td>
+                <td>
+                  <span class="dot" style="background:{{ item.color }}"></span>
+                  <span class="fw-semibold">{{ item.name }}</span>
+                </td>
+                <td>
+                  <span class="color-chip" style="background:{{ item.color }}"></span>
+                  <code class="small text-muted">{{ item.color }}</code>
+                </td>
+                <td class="text-center">
+                  {% if usage %}
+                    <a href="{{ url_for('applications.index', job_type_id=item.id) }}"
+                       class="badge text-bg-primary text-decoration-none">{{ usage }}</a>
+                  {% else %}
+                    <span class="text-muted small">0</span>
+                  {% endif %}
+                </td>
+                <td class="text-center">
+                  {% if item.is_active %}
+                    <span class="badge text-bg-success">启用</span>
+                  {% else %}
+                    <span class="badge text-bg-secondary">停用</span>
+                  {% endif %}
+                </td>
+                <td class="text-end text-nowrap">
+                  <a href="{{ url_for('job_types.edit', type_id=item.id) }}" class="btn btn-sm btn-light">
+                    <i class="bi bi-pencil"></i>
+                  </a>
+                  <form method="post" action="{{ url_for('job_types.toggle', type_id=item.id) }}" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button class="btn btn-sm btn-light {% if item.is_active %}text-success{% else %}text-muted{% endif %}"
+                            type="submit" title="{{ '停用' if item.is_active else '启用' }}">
+                      <i class="bi bi-toggle-{{ 'on' if item.is_active else 'off' }}"></i>
+                    </button>
+                  </form>
+                  {{ delete_confirm(url_for('job_types.delete', type_id=item.id),
+                                    label='',
+                                    icon='trash',
+                                    message='删除类型「' ~ item.name ~ '」？被投递记录引用时会被拒绝。') }}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="p-4">
+        {{ empty_state('tags', '还没有职位类型', '例如「后端开发」「算法工程师」「产品经理」，用于分类统计',
+                       url_for('job_types.create'), '新增类型') }}
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="alert alert-light border mt-3 small text-muted">
+  <i class="bi bi-info-circle me-1"></i>
+  停用后新建投递时不会再出现在下拉里，但历史记录仍正常显示；已被投递记录引用的类型不允许删除，只能停用 —— 否则统计口径会断裂。
+</div>
+{% endblock %}

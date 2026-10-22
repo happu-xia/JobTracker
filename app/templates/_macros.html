@@ -1,0 +1,70 @@
+{# 通用表单字段宏：统一 label / 控件 / 错误提示 / 帮助文案，避免各页面样式漂移 #}
+{% macro field(f, col='col-12', help=None, placeholder=None) %}
+  <div class="{{ col }}">
+    {{ f.label(class='form-label') }}
+    {{ f(class='form-control' + (' is-invalid' if f.errors else ''), placeholder=placeholder or '') }}
+    {% if f.errors %}
+      <div class="invalid-feedback d-block">{{ f.errors[0] }}</div>
+    {% elif help %}
+      <div class="form-text">{{ help }}</div>
+    {% endif %}
+  </div>
+{% endmacro %}
+
+{% macro select_field(f, col='col-12', help=None) %}
+  <div class="{{ col }}">
+    {{ f.label(class='form-label') }}
+    {{ f(class='form-select' + (' is-invalid' if f.errors else '')) }}
+    {% if f.errors %}
+      <div class="invalid-feedback d-block">{{ f.errors[0] }}</div>
+    {% elif help %}
+      <div class="form-text">{{ help }}</div>
+    {% endif %}
+  </div>
+{% endmacro %}
+
+{% macro textarea_field(f, col='col-12', rows=3) %}
+  <div class="{{ col }}">
+    {{ f.label(class='form-label') }}
+    {{ f(class='form-control' + (' is-invalid' if f.errors else ''), rows=rows) }}
+    {% if f.errors %}<div class="invalid-feedback d-block">{{ f.errors[0] }}</div>{% endif %}
+  </div>
+{% endmacro %}
+
+{% macro status_badge(status) %}
+  <span class="badge rounded-pill status-badge status-{{ status }}">
+    {{ STATUS_LABELS.get(status, status) }}
+  </span>
+{% endmacro %}
+
+{% macro empty_state(icon, title, hint='', action_href=None, action_label=None) %}
+  <div class="empty-state">
+    <div class="empty-icon"><i class="bi bi-{{ icon }}"></i></div>
+    <h6 class="mb-1">{{ title }}</h6>
+    {% if hint %}<p class="text-muted small mb-3">{{ hint }}</p>{% endif %}
+    {% if action_href %}
+      <a href="{{ action_href }}" class="btn btn-primary btn-sm">
+        <i class="bi bi-plus-lg"></i> {{ action_label }}
+      </a>
+    {% endif %}
+  </div>
+{% endmacro %}
+
+{% macro csrf() %}
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+{% endmacro %}
+
+{% macro delete_confirm(action, label='删除', message='删除后不可恢复，确认继续？', extra_class='btn-outline-danger', hidden=None, icon=None) %}
+  <form method="post" action="{{ action }}" class="d-inline"
+        onsubmit="return confirm('{{ message }}');">
+    {{ csrf() }}
+    {% if hidden %}
+      {% for key, value in hidden.items() %}
+        <input type="hidden" name="{{ key }}" value="{{ value }}">
+      {% endfor %}
+    {% endif %}
+    <button type="submit" class="btn btn-sm {{ extra_class }}"{% if not label %} title="删除"{% endif %}>
+      {% if icon %}<i class="bi bi-{{ icon }}"></i>{% endif %}{% if label %} {{ label }}{% endif %}
+    </button>
+  </form>
+{% endmacro %}

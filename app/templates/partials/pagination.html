@@ -1,0 +1,30 @@
+{% if pagination and pagination.pages > 1 %}
+<nav class="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-3" aria-label="分页">
+  <div class="text-muted small">
+    共 {{ pagination.total }} 条，当前 {{ pagination.first_index }}-{{ pagination.last_index }}
+  </div>
+  <ul class="pagination pagination-sm mb-0">
+    <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+      <a class="page-link" href="{{ pagination.url_for_page(pagination.prev_page) if pagination.has_prev else '#' }}" aria-label="上一页">
+        <i class="bi bi-chevron-left"></i>
+      </a>
+    </li>
+    {% for number in pagination.page_numbers() %}
+      {% if number is none %}
+        <li class="page-item disabled"><span class="page-link">…</span></li>
+      {% else %}
+        <li class="page-item {% if number == pagination.page %}active{% endif %}">
+          <a class="page-link" href="{{ pagination.url_for_page(number) }}">{{ number }}</a>
+        </li>
+      {% endif %}
+    {% endfor %}
+    <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+      <a class="page-link" href="{{ pagination.url_for_page(pagination.next_page) if pagination.has_next else '#' }}" aria-label="下一页">
+        <i class="bi bi-chevron-right"></i>
+      </a>
+    </li>
+  </ul>
+</nav>
+{% elif pagination %}
+<div class="text-muted small mt-3">共 {{ pagination.total }} 条</div>
+{% endif %}

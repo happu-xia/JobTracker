@@ -1,0 +1,37 @@
+# ---------- Python ----------
+__pycache__/
+*.py[cod]
+*.egg-info/
+# ---------- 测试与本地预览产物 ----------
+.pytest_cache/
+.pytest_tmp/
+.preview/
+.coverage
+htmlcov/
+.venv/
+venv/
+
+# ---------- 环境与密钥 ----------
+.env
+instance/
+*.log
+
+# ---------- 上传的文件（简历，绝不应入库） ----------
+uploads/
+*.pdf
+*.docx
+!docs/**/*.pdf
+
+# ---------- 本地工具数据与临时备份 ----------
+.workbuddy/
+*.bak
+*.orig
+
+# ---------- 编辑器 ----------
+.vscode/
+.idea/*
+# 共享运行配置要进版本库：别人 clone 下来直接能点绿三角启动
+!.idea/runConfigurations/
+*.swp
+.DS_Store
+Thumbs.db

@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+{% from '_macros.html' import status_badge, empty_state %}
+{% block title %}看板{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <h4 class="mb-1">你好，{{ current_user.username }} 👋</h4>
+    <p class="text-muted small mb-0">
+      统计区间 {{ data.range.start }} ~ {{ data.range.end }}（近 30 天）
+    </p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('stats.index') }}" class="btn btn-light btn-sm">
+      <i class="bi bi-bar-chart-line"></i> 完整统计
+    </a>
+    <a href="{{ url_for('applications.create') }}" class="btn btn-primary btn-sm">
+      <i class="bi bi-plus-lg"></i> 记录投递
+    </a>
+  </div>
+</div>
+
+{% if not has_resume %}
+<div class="alert alert-warning d-flex align-items-center justify-content-between flex-wrap gap-2">
+  <span><i class="bi bi-exclamation-triangle me-1"></i>还没有上传简历，投递记录将无法绑定简历文件。</span>
+  <a href="{{ url_for('resumes.upload') }}" class="btn btn-sm btn-warning">去上传</a>
+</div>
+{% endif %}
+
+<div class="row g-3 mb-1">
+  {% set cards = [
+    ('总投递', kpi.total, 'bi-send', '#5B8FF9', kpi.last7 ~ ' 条近 7 天投递'),
+    ('进入面试', kpi.interviewed, 'bi-person-video3', '#F6BD16', '面试率 ' ~ kpi.interview_rate ~ '%'),
+    ('Offer', kpi.offered, 'bi-trophy', '#FF4D4F', 'Offer 率 ' ~ kpi.offer_rate ~ '%'),
+    ('已拒绝', kpi.rejected, 'bi-x-circle', '#909399', '放弃 ' ~ kpi.withdrawn ~ ' 条'),
+    ('平均响应', kpi.avg_response_days, 'bi-clock-history', '#5AD8A6', '企业查看耗时（天）'),
+    ('职位类型', job_type_count, 'bi-tags', '#9270CA', '可在「职位类型」中自定义')
+  ] %}
+  {% for label, value, icon, color, hint in cards %}
+    <div class="col-6 col-md-4 col-xl-2">
+      <div class="card kpi-card h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <span class="kpi-label">{{ label }}</span>
+            <span class="kpi-icon" style="background:{{ color }}1a; color:{{ color }};"><i class="bi {{ icon }}"></i></span>
+          </div>
+          <div class="kpi-value">{{ value }}</div>
+          <div class="kpi-hint">{{ hint }}</div>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+<div class="row g-3 mt-1">
+  <div class="col-lg-7">
+    <div class="card h-100">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-graph-up me-1"></i>近 7 天投递趋势</span>
+        <span class="badge text-bg-light">{{ data.trend.total }} 条</span>
+      </div>
+      <div class="card-body">
+        <div id="trendChart" class="chart" data-payload='{{ data.trend | tojson }}'></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-5">
+    <div class="card h-100">
+      <div class="card-header"><i class="bi bi-pie-chart me-1"></i>投递状态分布（近 30 天）</div>
+      <div class="card-body">
+        <div id="statusChart" class="chart" data-payload='{{ data.status | tojson }}'></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mt-1">
+  <div class="col-lg-5">
+    <div class="card h-100">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-calendar-event me-1"></i>即将到来的面试</span>
+        <a href="{{ url_for('applications.index', has_interview='yes') }}" class="small">全部</a>
+      </div>
+      <div class="card-body p-0">
+        {% if upcoming %}
+          <ul class="list-group list-group-flush">
+            {% for item in upcoming %}
+              <li class="list-group-item d-flex justify-content-between align-items-start gap-2">
+                <div class="min-w-0">
+                  <a href="{{ url_for('applications.detail', app_id=item.application_id) }}"
+                     class="fw-semibold text-decoration-none d-block text-truncate">
+                    {{ item.application.company.name }} · {{ item.application.position_name }}
+                  </a>
+                  <span class="text-muted small">{{ item.round_label }} · {{ item.scheduled_at | dt }}</span>
+                </div>
+                <span class="badge text-bg-light text-nowrap">{{ item.scheduled_at | humanize }}</span>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <div class="p-4">{{ empty_state('calendar-x', '暂无待进行的面试', '在投递详情页添加面试记录后会出现在这里') }}</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-7">
+    <div class="card h-100">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-clock-history me-1"></i>最近投递</span>
+        <a href="{{ url_for('applications.index') }}" class="small">全部记录</a>
+      </div>
+      <div class="card-body p-0">
+        {% if recent %}
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr><th>企业 / 职位</th><th>状态</th><th class="text-end">投递时间</th></tr>
+              </thead>
+              <tbody>
+                {% for item in recent %}
+                  <tr>
+                    <td>
+                      <a href="{{ url_for('applications.detail', app_id=item.id) }}" class="text-decoration-none">
+                        <div class="fw-semibold text-body">{{ item.position_name }}</div>
+                        <div class="text-muted small">{{ item.company.name }}</div>
+                      </a>
+                    </td>
+                    <td>{{ status_badge(item.status) }}</td>
+                    <td class="text-end text-muted small">{{ item.applied_at | humanize }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="p-4">
+            {{ empty_state('inboxes', '还没有投递记录', '先建企业库，再记录第一笔投递', url_for('applications.create'), '记录投递') }}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if config.USE_LOCAL_ASSETS %}
+<script src="{{ url_for('static', filename='vendor/echarts.min.js') }}"></script>
+{% else %}
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+{% endif %}
+<script src="{{ url_for('static', filename='js/charts/theme.js') }}"></script>
+<script src="{{ url_for('static', filename='js/charts/dashboard.js') }}"></script>
+{% endblock %}

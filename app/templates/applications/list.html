@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+{% from '_macros.html' import status_badge, empty_state, delete_confirm %}
+{% block title %}投递记录{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <h4 class="mb-1">投递记录</h4>
+    <p class="text-muted small mb-0">共 {{ total }} 条记录 · 支持按状态、职位类型、渠道、日期与有无面试组合筛选</p>
+  </div>
+  <a href="{{ url_for('applications.create') }}" class="btn btn-primary btn-sm">
+    <i class="bi bi-plus-lg"></i> 记录投递
+  </a>
+</div>
+
+<ul class="nav nav-pills status-tabs mb-3 flex-wrap gap-1">
+  <li class="nav-item">
+    <a class="nav-link {% if not filters.status %}active{% endif %}"
+       href="{{ url_for('applications.index', q=filters.q, job_type_id=filters.job_type_id,
+                        channel=filters.channel, has_interview=filters.has_interview,
+                        date_from=filters.date_from, date_to=filters.date_to, sort=filters.sort) }}">
+      全部 <span class="tab-count">{{ total }}</span>
+    </a>
+  </li>
+  {% for status in STATUS_ORDER %}
+    <li class="nav-item">
+      <a class="nav-link {% if filters.status == status %}active{% endif %} status-tab-{{ status }}"
+         href="{{ url_for('applications.index', status=status, q=filters.q, job_type_id=filters.job_type_id,
+                          channel=filters.channel, has_interview=filters.has_interview,
+                          date_from=filters.date_from, date_to=filters.date_to, sort=filters.sort) }}">
+        {{ STATUS_LABELS[status] }} <span class="tab-count">{{ counts.get(status, 0) }}</span>
+      </a>
+    </li>
+  {% endfor %}
+</ul>
+
+<div class="card mb-3">
+  <div class="card-body py-3">
+    <form method="get" class="row g-2 align-items-end">
+      {% if filters.status %}<input type="hidden" name="status" value="{{ filters.status }}">{% endif %}
+      <div class="col-md-2">
+        <label class="form-label small text-muted mb-1">关键词</label>
+        <input type="search" name="q" value="{{ filters.q or '' }}" class="form-control" placeholder="职位或企业名称">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small text-muted mb-1">职位类型</label>
+        <select name="job_type_id" class="form-select">
+          <option value="">全部</option>
+          {% for t in types %}
+            <option value="{{ t.id }}" {% if filters.job_type_id == t.id %}selected{% endif %}>{{ t.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small text-muted mb-1">渠道</label>
+        <select name="channel" class="form-select">
+          <option value="">全部</option>
+          {% for key, label in channels.items() %}
+            <option value="{{ key }}" {% if filters.channel == key %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small text-muted mb-1">面试</label>
+        <select name="has_interview" class="form-select">
+          <option value="">全部</option>
+          <option value="yes" {% if filters.has_interview == 'yes' %}selected{% endif %}>有面试</option>
+          <option value="no" {% if filters.has_interview == 'no' %}selected{% endif %}>无面试</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small text-muted mb-1">投递日期区间</label>
+        <div class="input-group date-range">
+          <input type="date" name="date_from" value="{{ filters.date_from or '' }}" class="form-control" aria-label="开始日期">
+          <span class="input-group-text px-1">~</span>
+          <input type="date" name="date_to" value="{{ filters.date_to or '' }}" class="form-control" aria-label="结束日期">
+        </div>
+      </div>
+      <div class="col-md-1">
+        <label class="form-label small text-muted mb-1">排序</label>
+        <select name="sort" class="form-select">
+          {% for key, label in sort_options.items() %}
+            <option value="{{ key }}" {% if filters.sort == key %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-12 d-flex gap-2 pt-1">
+        <button class="btn btn-primary btn-sm" type="submit"><i class="bi bi-funnel"></i> 应用筛选</button>
+        <a href="{{ url_for('applications.index') }}" class="btn btn-light btn-sm">清空</a>
+        <span class="ms-auto text-muted small align-self-center">
+          当前显示 {{ pagination.items | length }} 条
+        </span>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body p-0">
+    {% if pagination.items %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0 app-table">
+          <thead class="table-light">
+            <tr>
+              <th style="min-width:220px">企业 / 职位</th>
+              <th>职位类型</th>
+              <th>渠道</th>
+              <th>状态</th>
+              <th class="text-center">面试</th>
+              <th class="text-end">投递时间</th>
+              <th class="text-end">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in pagination.items %}
+              <tr>
+                <td>
+                  <a href="{{ url_for('applications.detail', app_id=item.id) }}" class="text-decoration-none">
+                    <div class="fw-semibold text-body">{{ item.position_name }}</div>
+                    <div class="text-muted small">
+                      <i class="bi bi-building me-1"></i>{{ item.company.name if item.company else '—' }}
+                      {% if item.salary_label != '面议' %}
+                        <span class="ms-2 text-body-tertiary">{{ item.salary_label }}</span>
+                      {% endif %}
+                    </div>
+                  </a>
+                </td>
+                <td class="small">
+                  {% if item.job_type %}
+                    <span class="dot" style="background:{{ item.job_type.color }}"></span>{{ item.job_type.name }}
+                  {% else %}
+                    <span class="text-muted">未分类</span>
+                  {% endif %}
+                </td>
+                <td class="small text-muted">{{ CHANNEL_LABELS.get(item.channel, item.channel) }}</td>
+                <td>{{ status_badge(item.status) }}</td>
+                <td class="text-center">
+                  {% if item.has_interview %}
+                    <span class="badge text-bg-warning">{{ item.stage_label }}</span>
+                  {% else %}
+                    <span class="text-muted small">—</span>
+                  {% endif %}
+                </td>
+                <td class="text-end text-muted small text-nowrap">{{ item.applied_at | d }}</td>
+                <td class="text-end text-nowrap">
+                  <a href="{{ url_for('applications.edit', app_id=item.id) }}" class="btn btn-sm btn-light" title="编辑">
+                    <i class="bi bi-pencil"></i>
+                  </a>
+                  {{ delete_confirm(url_for('applications.delete', app_id=item.id),
+                                    label='',
+                                    icon='trash',
+                                    message='删除该投递记录？相关面试记录会一并删除（简历文件保留）。') }}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="p-4">
+        {% if total %}
+          {{ empty_state('funnel', '当前筛选下没有记录', '试着放宽条件或清空筛选', url_for('applications.index'), '清空筛选') }}
+        {% else %}
+          {{ empty_state('send', '还没有投递记录', '记录第一笔投递，之后就能看到转化漏斗和渠道效果',
+                         url_for('applications.create'), '记录投递') }}
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+{% include 'partials/pagination.html' %}
+{% endblock %}
